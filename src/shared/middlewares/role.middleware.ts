@@ -16,7 +16,7 @@ export function requireRoles(...allowedRoles: Role[]) {
       return next(ApiError.unauthorized('User not authenticated'));
     }
 
-    if (!allowedRoles.includes(user.role)) {
+    if (user.role !== Role.SUPER_ADMIN && !allowedRoles.includes(user.role)) {
       return next(ApiError.forbidden('You do not have permission to access this resource'));
     }
 

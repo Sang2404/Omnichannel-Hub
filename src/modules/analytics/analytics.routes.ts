@@ -9,17 +9,19 @@ import { Role } from '@prisma/client';
 const router = Router();
 const controller = new AnalyticsController();
 
-// Only Shop Owner (ADMIN) users can access their shop's business intelligence stats
+// Auth required for all analytics routes
 router.use(authMiddleware);
-router.use(requireRoles(Role.ADMIN));
 
+// Operational Dashboard metrics - Available to both Shop Owner (ADMIN) and Staff (STAFF)
 router.get('/kpi-overview', validateRequest(analyticsQuerySchema, 'query'), controller.getKpiOverview);
 router.get('/revenue-trend', validateRequest(analyticsQuerySchema, 'query'), controller.getRevenueTrend);
-router.get('/channel-performance', validateRequest(analyticsQuerySchema, 'query'), controller.getChannelPerformance);
-router.get('/profit-breakdown', validateRequest(analyticsQuerySchema, 'query'), controller.getProfitBreakdown);
-router.get('/top-products', validateRequest(topProductsQuerySchema, 'query'), controller.getTopProducts);
-router.get('/inventory-alerts', controller.getInventoryAlerts);
-router.get('/inventory-forecast', validateRequest(forecastQuerySchema, 'query'), controller.getInventoryForecast);
 router.get('/chat-conversion', validateRequest(analyticsQuerySchema, 'query'), controller.getChatConversion);
+router.get('/inventory-alerts', controller.getInventoryAlerts);
+
+// Financial Profit & Deep Business Intelligence - Shop Owner (ADMIN) only
+router.get('/channel-performance', requireRoles(Role.ADMIN), validateRequest(analyticsQuerySchema, 'query'), controller.getChannelPerformance);
+router.get('/profit-breakdown', requireRoles(Role.ADMIN), validateRequest(analyticsQuerySchema, 'query'), controller.getProfitBreakdown);
+router.get('/top-products', requireRoles(Role.ADMIN), validateRequest(topProductsQuerySchema, 'query'), controller.getTopProducts);
+router.get('/inventory-forecast', requireRoles(Role.ADMIN), validateRequest(forecastQuerySchema, 'query'), controller.getInventoryForecast);
 
 export default router;

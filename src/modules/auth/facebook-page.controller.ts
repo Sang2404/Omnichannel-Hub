@@ -29,7 +29,7 @@ export class FacebookPageController {
    */
   async connectPage(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = (req as any).user.userId;
+      const userId = req.user?.id || (req as any).user?.userId;
       const { id, name, accessToken } = req.body;
 
       const updatedUser = await facebookPageService.selectAndConnectPage(userId, {
@@ -54,7 +54,7 @@ export class FacebookPageController {
    */
   async getConnectionStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = (req as any).user.userId;
+      const userId = req.user?.id || (req as any).user?.userId;
       const status = await facebookPageService.getPageConnectionStatus(userId);
       successResponse({
         res,
@@ -72,7 +72,7 @@ export class FacebookPageController {
    */
   async disconnectPage(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = (req as any).user.userId;
+      const userId = req.user?.id || (req as any).user?.userId;
       const result = await facebookPageService.disconnectPage(userId);
       successResponse({
         res,

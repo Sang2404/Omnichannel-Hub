@@ -237,48 +237,38 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 3: Profit (Admin) or Customers (Staff) */}
+        {/* Metric 3: New Customers (Standardized across all roles) */}
         <div className="p-6">
-          <div className="text-sm font-semibold text-slate-500">
-            {isAdmin ? 'Lợi nhuận gộp' : 'Khách hàng mới'}
-          </div>
+          <div className="text-sm font-semibold text-slate-500">Khách hàng mới</div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 tabular-nums">
               {loading ? (
-                <span className="inline-block h-8 w-32 bg-slate-100 rounded animate-pulse" />
-              ) : isAdmin ? (
-                formatFullVND(kpi?.netProfit.total || 0)
+                <span className="inline-block h-8 w-24 bg-slate-100 rounded animate-pulse" />
               ) : (
                 `+${kpi?.newCustomers.total || 0}`
               )}
             </span>
           </div>
           <div className="mt-2.5 flex items-center gap-2 text-sm text-slate-500">
-            {isAdmin ? (
-              <>
-                <span className="font-semibold text-slate-700">
-                  Biên LN: {kpi && kpi.revenue.total > 0 ? ((kpi.netProfit.total / kpi.revenue.total) * 100).toFixed(1) : '0'}%
-                </span>
-                <span>·</span>
-                <span>Trừ COGS & Phí sàn</span>
-              </>
-            ) : (
-              <>
-                <span className="font-semibold text-slate-700">
-                  {kpi && kpi.newCustomers.changePercent > 0 ? `+${kpi.newCustomers.changePercent}%` : `${kpi?.newCustomers.changePercent || 0}%`}
-                </span>
-                <span>·</span>
-                <span>so với kỳ trước</span>
-              </>
-            )}
+            <span
+              className={`inline-flex items-center font-semibold ${(kpi?.newCustomers.changePercent || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
+            >
+              {(kpi?.newCustomers.changePercent || 0) >= 0 ? (
+                <ArrowUpRight className="h-4 w-4" />
+              ) : (
+                <ArrowDownRight className="h-4 w-4" />
+              )}
+              {kpi && kpi.newCustomers.changePercent > 0
+                ? `+${kpi.newCustomers.changePercent}%`
+                : `${kpi?.newCustomers.changePercent || 0}%`}
+            </span>
+            <span>so với kỳ trước</span>
           </div>
         </div>
 
-        {/* Metric 4: Platform Sync / Stock Alerts */}
+        {/* Metric 4: Stock Alerts (Standardized across all roles) */}
         <div className="p-6">
-          <div className="text-sm font-semibold text-slate-500">
-            {isAdmin ? 'Kho & Đồng bộ Shopee' : 'Tồn kho cảnh báo'}
-          </div>
+          <div className="text-sm font-semibold text-slate-500">Cảnh báo tồn kho</div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 tabular-nums">
               {loading ? (
@@ -292,7 +282,7 @@ export const DashboardPage: React.FC = () => {
             {totalStockAlerts === 0 ? (
               <span className="font-semibold text-emerald-700 flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4" />
-                Không có cảnh báo
+                Kho hàng an toàn
               </span>
             ) : (
               <span className="font-semibold text-rose-700 flex items-center gap-1">
@@ -303,6 +293,40 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ────────────────── EXECUTIVE PROFIT BAR (ADMIN EXCLUSIVE) ────────────────── */}
+      {isAdmin && (
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-white p-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+              LN
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Chỉ số tài chính chủ shop</span>
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">Dành riêng Quản trị</span>
+              </div>
+              <div className="text-sm text-slate-700 mt-0.5">
+                Lợi nhuận gộp ước tính:{' '}
+                <strong className="text-slate-900 font-bold text-base font-mono">
+                  {formatFullVND(kpi?.netProfit.total || 0)}
+                </strong>{' '}
+                <span className="text-xs font-semibold text-emerald-700 ml-1">
+                  (Biên LN: {kpi && kpi.revenue.total > 0 ? ((kpi.netProfit.total / kpi.revenue.total) * 100).toFixed(1) : '0'}%)
+                </span>
+                <span className="text-xs text-slate-500 ml-2 hidden md:inline">· Đã khấu trừ giá vốn hàng bán và chiết khấu sàn</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/analytics')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-blue-600 hover:bg-slate-50 shadow-2xs transition-colors shrink-0"
+          >
+            <span>Phân tích tài chính chi tiết</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ────────────────── OPERATIONAL WORKLISTS (HIGH-DENSITY WORKBENCH) ────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

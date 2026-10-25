@@ -5,3 +5,8 @@ import { redisConnection } from '../../config/redis';
 export const facebookMessageQueue = new Queue('facebook-messages', {
   connection: redisConnection,
 });
+
+facebookMessageQueue.on('error', () => {
+  // Ignored or handled centrally to avoid unhandled EventEmitter dumps
+});
+

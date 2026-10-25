@@ -99,5 +99,9 @@ export function initFacebookMessageWorker() {
     logger.error(`FB message job ${job?.id} failed with error:`, err);
   });
 
+  worker.on('error', () => {
+    // Handled to suppress unhandled connection error stack dumps when Redis is offline
+  });
+
   return worker;
 }
