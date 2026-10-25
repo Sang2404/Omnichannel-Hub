@@ -1,0 +1,148 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN // Quản trị viên hệ thống nền tảng SaaS
+  ADMIN       // Chủ shop (Toàn quyền quản lý cửa hàng)
+  STAFF       // Nhân viên (Chỉ chat, lên đơn, xem kho)
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // Chờ quét mã QR
+  PAID            // Đã thanh toán tự động
+  PROCESSING      // Đang chuẩn bị hàng
+  SHIPPED         // Đã giao cho bên GHN
+  COMPLETED       // Giao thành công
+  CANCELLED       // Đơn bị hủy
+}
+
+enum OrderChannel {
+  FACEBOOK
+  SHOPEE
+}
+
+enum SenderType {
+  CUSTOMER
+  STAFF
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  QR_CODE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role              Role      @default(STAFF)
+  shopName          String?   @default("Bình Dương Commerce")
+  fbPageId          String?
+  fbPageName        String?
+  fbPageAccessToken String?
+  fbConnectedAt     DateTime?
+  createdAt         DateTime  @default(now())
+}
+
+model Product {
+  id              String           @id @default(uuid())
+  sku             String           @unique // Mã quản lý kho gốc
+  name            String
+  description     String?
+  price           Float            // Giá bán gốc tại kho
+  stock           Int              // Tồn kho gốc nội bộ
+  weight          Int              @default(500) // Grams phục vụ tính ship GHN
+  shopeeItemMapping ShopeeProductMapping?
+  orderItems      OrderItem[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model ShopeeProductMapping {
+  id            String   @id @default(uuid())
+  productId     String   @unique
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  shopeeItemId  BigInt   @unique // ID sản phẩm trên sàn Shopee Sandbox
+  shopeePrice   Float    // Giá cấu hình bán trên Shopee
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  fbUserId      String?        @unique // ID định danh người dùng từ Meta API
+  name          String
+  phone         String?
+  address       String?
+  districtId    Int?           // Mã Quận/Huyện theo GHN API
+  wardCode      String?        // Mã Phường/Xã theo GHN API
+  customTag     String?        // Phân loại khách thủ công ('VIP' | 'ORDERED' | 'CONSULTING' | 'WARNING' | 'NEW' | 'LOYAL' | 'AT_RISK')
+  orders        Order[]
+  conversations Conversation[]
+  createdAt     DateTime       @default(now())
+}
+
+model Order {
+  id              String       @id @default(uuid())
+  orderCode       Int          @unique @default(autoincrement()) // Dùng làm orderCode cho PayOS
+  channel         OrderChannel
+  customerId      String
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  status          OrderStatus  @default(PENDING_PAYMENT)
+  totalAmount     Float
+  shippingFee     Float        @default(0)
+  payosPaymentId  String?      @unique // ID giao dịch tạo từ PayOS
+  ghnOrderCode    String?      @unique // Mã vận đơn từ Giao Hàng Nhanh
+  shopeeOrderId   String?      @unique // Mã đơn hàng nếu kéo từ Shopee về
+  items           OrderItem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float    // Giá tại thời điểm mua
+}
+
+model Conversation {
+  id           String    @id @default(uuid())
+  customerId   String
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  lastMessage  String?
+  lastActiveAt DateTime  @default(now())
+  messages     Message[]
+  createdAt    DateTime  @default(now())
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     SenderType   // CUSTOMER hoặc STAFF
+  content        String
+  messageType    MessageType  @default(TEXT) // TEXT, IMAGE, QR_CODE
+  fbMessageId    String?      @unique // Message ID từ Facebook
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  category  String   // 'order' | 'chat' | 'stock' | 'shipping'
+  link      String?  // '/orders', '/chat', '/products'
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

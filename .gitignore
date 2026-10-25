@@ -1,0 +1,71 @@
+# ==========================================
+# 1. Environment & Secrets (CRITICAL SECURITY)
+# ==========================================
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# ==========================================
+# 2. Dependencies
+# ==========================================
+node_modules/
+*/node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+
+# ==========================================
+# 3. Production & Build Outputs
+# ==========================================
+dist/
+*/dist/
+build/
+*/build/
+out/
+*.tsbuildinfo
+
+# ==========================================
+# 4. Logs & Runtime Debugging
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# 5. OS & Editor Metadata
+# ==========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==========================================
+# 6. AI Agent Workspace & Scratch Artifacts
+# ==========================================
+.agents/
+.codex/
+
+# ==========================================
+# 7. Local Personal Files & Non-Code Dumps
+# ==========================================
+dump_*.txt
+doc_text.txt
+scratch_test_tab.docx
+generate_slide.py
+*.pptx
+*.docx
+*.pdf
+TaiLieu_BaoCao/
